@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import type { TodoInsert, TodoUpdate } from '@/types/todo';
 
-function getClient() { return createClient(); }
+const getClient = () => createClient();
 
 export const todoService = {
   async getTodosByList(listId: string) {
@@ -57,12 +57,18 @@ export const todoService = {
   },
 
   async reorderTodos(items: { id: string; position: number }[]) {
-    const promises = items.map(({ id, position }) =>
-      getClient().from('todos').update({ position }).eq('id', id)
-    );
-    const results = await Promise.all(promises);
-    const failed = results.find((r) => r.error);
-    if (failed?.error) throw failed.error;
+    const client = getClient();
+    const batchSize = 10;
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      const results = await Promise.all(
+        batch.map(({ id, position }) =>
+          client.from('todos').update({ position }).eq('id', id)
+        )
+      );
+      const failed = results.find((r) => r.error);
+      if (failed?.error) throw failed.error;
+    }
   },
 
   async getUserStats(userId: string) {

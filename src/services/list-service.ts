@@ -1,9 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import type { ListInsert, ListUpdate } from '@/types/list';
 
-function getClient() {
-  return createClient();
-}
+const getClient = () => createClient();
 
 export const listService = {
   async getLists() {
@@ -26,13 +24,14 @@ export const listService = {
   },
 
   async getListsWithCounts() {
-    const { data: lists, error: listError } = await getClient()
+    const client = getClient();
+    const { data: lists, error: listError } = await client
       .from('lists')
       .select('*')
       .order('position', { ascending: true });
     if (listError) throw listError;
 
-    const { data: todos, error: todoError } = await getClient()
+    const { data: todos, error: todoError } = await client
       .from('todos')
       .select('id, list_id, status');
     if (todoError) throw todoError;
@@ -74,11 +73,17 @@ export const listService = {
   },
 
   async reorderLists(items: { id: string; position: number }[]) {
-    const promises = items.map(({ id, position }) =>
-      getClient().from('lists').update({ position }).eq('id', id)
-    );
-    const results = await Promise.all(promises);
-    const failed = results.find((r) => r.error);
-    if (failed?.error) throw failed.error;
+    const client = getClient();
+    const batchSize = 10;
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      const results = await Promise.all(
+        batch.map(({ id, position }) =>
+          client.from('lists').update({ position }).eq('id', id)
+        )
+      );
+      const failed = results.find((r) => r.error);
+      if (failed?.error) throw failed.error;
+    }
   },
 };

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { todoService } from '@/services/todo-service';
 import { useAuthStore } from '@/stores/auth-store';
 import { useTodoStore } from '@/stores/todo-store';
@@ -15,6 +15,8 @@ export function useTodos(listId: string) {
   const [error, setError] = useState<string | null>(null);
   const user = useAuthStore((s) => s.user);
   const storeSetTodos = useTodoStore((s) => s.setTodos);
+  const todosRef = useRef(todos);
+  todosRef.current = todos;
 
   const fetchTodos = useCallback(async () => {
     if (!listId) return;
@@ -34,11 +36,18 @@ export function useTodos(listId: string) {
     if (user && listId) fetchTodos();
   }, [user, listId, fetchTodos]);
 
+  // Sync store whenever local todos change
+  useEffect(() => {
+    if (listId && todos.length > 0) {
+      storeSetTodos(listId, todos);
+    }
+  }, [listId, todos, storeSetTodos]);
+
   const createTodo = useCallback(
     async (input: Omit<CreateTodoInput, 'list_id'>) => {
       if (!user) return;
       try {
-        const position = todos.length * POSITION_GAP;
+        const position = todosRef.current.length * POSITION_GAP;
         const newTodo = await todoService.createTodo(
           { ...input, list_id: listId, position },
           user.id
@@ -51,46 +60,46 @@ export function useTodos(listId: string) {
         throw err;
       }
     },
-    [user, listId, todos.length]
+    [user, listId]
   );
 
   const updateTodo = useCallback(
     async (id: string, input: UpdateTodoInput) => {
-      const prev = todos;
+      const snapshot = todosRef.current;
       setTodos((t) => t.map((item) => (item.id === id ? { ...item, ...input } : item)));
       try {
         await todoService.updateTodo(id, input);
       } catch (err) {
-        setTodos(prev);
+        setTodos(snapshot);
         toast.error(err instanceof Error ? err.message : 'Failed to update todo');
         throw err;
       }
     },
-    [todos]
+    []
   );
 
   const deleteTodo = useCallback(
     async (id: string) => {
-      const prev = todos;
+      const snapshot = todosRef.current;
       setTodos((t) => t.filter((item) => item.id !== id));
       try {
         await todoService.deleteTodo(id);
         toast.success('Todo deleted');
       } catch (err) {
-        setTodos(prev);
+        setTodos(snapshot);
         toast.error(err instanceof Error ? err.message : 'Failed to delete todo');
         throw err;
       }
     },
-    [todos]
+    []
   );
 
   const toggleComplete = useCallback(
     async (id: string) => {
-      const todo = todos.find((t) => t.id === id);
+      const todo = todosRef.current.find((t) => t.id === id);
       if (!todo) return;
       const newStatus = todo.status === 'completed' ? 'pending' : 'completed';
-      const prev = todos;
+      const snapshot = todosRef.current;
       setTodos((t) =>
         t.map((item) =>
           item.id === id ? { ...item, status: newStatus } : item
@@ -99,17 +108,17 @@ export function useTodos(listId: string) {
       try {
         await todoService.toggleComplete(id, todo.status);
       } catch (err) {
-        setTodos(prev);
+        setTodos(snapshot);
         toast.error('Failed to update todo');
         throw err;
       }
     },
-    [todos]
+    []
   );
 
   const reorder = useCallback(
     async (reorderedTodos: Todo[]) => {
-      const prev = todos;
+      const snapshot = todosRef.current;
       const updates = reorderedTodos.map((t, i) => ({
         id: t.id,
         position: i * POSITION_GAP,
@@ -118,12 +127,12 @@ export function useTodos(listId: string) {
       try {
         await todoService.reorderTodos(updates);
       } catch (err) {
-        setTodos(prev);
+        setTodos(snapshot);
         toast.error('Failed to reorder todos');
         throw err;
       }
     },
-    [todos]
+    []
   );
 
   return {

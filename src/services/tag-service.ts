@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import type { TagInsert } from '@/types/todo';
 
-function getClient() { return createClient(); }
+const getClient = () => createClient();
 
 export const tagService = {
   async getTags() {
