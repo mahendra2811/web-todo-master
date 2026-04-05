@@ -1,8 +1,8 @@
 const stats = [
-  { value: '100+', label: 'Features' },
-  { value: 'Zero', label: 'Cost' },
-  { value: '< 1s', label: 'Load Time' },
-  { value: '\u2713', label: 'Offline Ready' },
+  { value: "100+", label: "Features" },
+  { value: "Zero", label: "Cost" },
+  { value: "< 1s", label: "Load Time" },
+  { value: "\u2713", label: "Offline Ready" },
 ];
 
 export function SocialProof() {
@@ -21,7 +21,8 @@ export function SocialProof() {
           ))}
         </div>
         <p className="mt-8 text-sm sm:text-base text-gray-600 max-w-xl mx-auto">
-          SupaTodo is open-source and community-driven. No venture capital. No investors to please. Just a great todo app.
+          todoMasterAI is open-source and community-driven. No venture capital. No investors to
+          please. Just a great todo app.
         </p>
       </div>
     </section>

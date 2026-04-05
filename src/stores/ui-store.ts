@@ -1,9 +1,9 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export type Theme = 'light' | 'dark' | 'auto';
-export type Density = 'compact' | 'comfortable' | 'spacious';
-export type ViewMode = 'list' | 'kanban' | 'calendar';
+export type Theme = "light" | "dark" | "auto";
+export type Density = "compact" | "comfortable" | "spacious";
+export type ViewMode = "list" | "kanban" | "calendar";
 
 interface UIState {
   // Layout
@@ -36,9 +36,9 @@ export const useUIStore = create<UIState>()(
       createTodoModalOpen: false,
       quickAddOpen: false,
       searchOpen: false,
-      theme: 'light',
-      density: 'comfortable',
-      viewMode: 'list',
+      theme: "light",
+      density: "comfortable",
+      viewMode: "list",
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setCreateListModalOpen: (open) => set({ createListModalOpen: open }),
@@ -50,7 +50,7 @@ export const useUIStore = create<UIState>()(
       setViewMode: (viewMode) => set({ viewMode }),
     }),
     {
-      name: 'supatodo-ui',
+      name: "todoMasterAI-ui",
       partialize: (state) => ({
         theme: state.theme,
         density: state.density,

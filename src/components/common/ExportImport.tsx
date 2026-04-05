@@ -50,18 +50,29 @@ export function ExportImport() {
         version: 1,
         exportedAt: new Date().toISOString(),
         exportedBy: { userId: user.id, email: user.email },
-        stats: { totalLists: lists.length, totalTodos: todos.length, totalSubtasks: subtasks.length, totalTags: tags.length },
-        lists, todos, subtasks, tags, todoTags,
+        stats: {
+          totalLists: lists.length,
+          totalTodos: todos.length,
+          totalSubtasks: subtasks.length,
+          totalTags: tags.length,
+        },
+        lists,
+        todos,
+        subtasks,
+        tags,
+        todoTags,
       };
 
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `supatodo-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `todoMasterAI-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(`Exported ${exportData.stats?.totalLists || 0} lists, ${exportData.stats?.totalTodos || 0} todos`);
+      toast.success(
+        `Exported ${exportData.stats?.totalLists || 0} lists, ${exportData.stats?.totalTodos || 0} todos`
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Export failed");
     } finally {
@@ -79,7 +90,9 @@ export function ExportImport() {
       const conflicts = await detectConflicts(validatedData, user.id);
       if (conflicts.hasDuplicates && conflicts.message) analysis.warnings.push(conflicts.message);
       if (isDifferentUser(validatedData, user.id)) {
-        analysis.warnings.unshift("This data was exported by another user. All imported data will be assigned to you.");
+        analysis.warnings.unshift(
+          "This data was exported by another user. All imported data will be assigned to you."
+        );
       }
       setImportData(validatedData);
       setImportAnalysis(analysis);
@@ -95,7 +108,11 @@ export function ExportImport() {
     setImporting(true);
     setShowImportPreview(false);
     try {
-      const filteredData = await executeImport(importData, user.id, { includeCompleted, includeArchived, mode: importMode });
+      const filteredData = await executeImport(importData, user.id, {
+        includeCompleted,
+        includeArchived,
+        mode: importMode,
+      });
       toast.success(`Successfully imported ${getImportSummary(filteredData)}`);
       window.location.reload();
     } catch (err) {
@@ -115,31 +132,71 @@ export function ExportImport() {
   return (
     <>
       <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Data Export & Import</h2>
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          Data Export & Import
+        </h2>
         <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-          Export all your lists, todos, subtasks, and tags as JSON. Import to restore or migrate data.
+          Export all your lists, todos, subtasks, and tags as JSON. Import to restore or migrate
+          data.
         </p>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button onClick={handleExport} loading={exporting} variant="secondary" size="sm">Export All Data</Button>
-          <Button onClick={() => fileInputRef.current?.click()} loading={importing} variant="secondary" size="sm">Import Data</Button>
-          <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileSelect} className="hidden" />
+          <Button onClick={handleExport} loading={exporting} variant="secondary" size="sm">
+            Export All Data
+          </Button>
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            loading={importing}
+            variant="secondary"
+            size="sm"
+          >
+            Import Data
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
         </div>
       </div>
 
-      <Modal open={showImportPreview} onClose={() => { setShowImportPreview(false); resetImportState(); }} title="Import Preview" className="sm:max-w-2xl">
+      <Modal
+        open={showImportPreview}
+        onClose={() => {
+          setShowImportPreview(false);
+          resetImportState();
+        }}
+        title="Import Preview"
+        className="sm:max-w-2xl"
+      >
         {importAnalysis && importData && (
           <div className="space-y-4">
             <ImportSummaryCard analysis={importAnalysis} />
             <ImportBreakdownCard analysis={importAnalysis} />
-            {importAnalysis.warnings.length > 0 && <ImportWarnings warnings={importAnalysis.warnings} />}
+            {importAnalysis.warnings.length > 0 && (
+              <ImportWarnings warnings={importAnalysis.warnings} />
+            )}
             <ImportOptions
-              importMode={importMode} setImportMode={setImportMode}
-              includeCompleted={includeCompleted} setIncludeCompleted={setIncludeCompleted}
-              includeArchived={includeArchived} setIncludeArchived={setIncludeArchived}
+              importMode={importMode}
+              setImportMode={setImportMode}
+              includeCompleted={includeCompleted}
+              setIncludeCompleted={setIncludeCompleted}
+              includeArchived={includeArchived}
+              setIncludeArchived={setIncludeArchived}
               completedCount={importAnalysis.breakdown.completed}
             />
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button onClick={() => { setShowImportPreview(false); resetImportState(); }} variant="secondary" size="sm">Cancel</Button>
+              <Button
+                onClick={() => {
+                  setShowImportPreview(false);
+                  resetImportState();
+                }}
+                variant="secondary"
+                size="sm"
+              >
+                Cancel
+              </Button>
               <Button onClick={confirmImport} loading={importing} size="sm">
                 {importMode === "replace" ? "Replace & Import" : "Import"}
               </Button>
@@ -154,11 +211,13 @@ export function ExportImport() {
 function ImportSummaryCard({ analysis }: { analysis: ImportAnalysis }) {
   return (
     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-      <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">Import Summary</h3>
+      <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+        Import Summary
+      </h3>
       <div className="grid grid-cols-2 gap-3 text-xs">
-        {(['lists', 'todos', 'subtasks', 'tags'] as const).map((key) => (
+        {(["lists", "todos", "subtasks", "tags"] as const).map((key) => (
           <div key={key}>
-            <span className="text-blue-700 dark:text-blue-300 capitalize">{key}:</span>{' '}
+            <span className="text-blue-700 dark:text-blue-300 capitalize">{key}:</span>{" "}
             <span className="font-semibold text-blue-900 dark:text-blue-100">{analysis[key]}</span>
           </div>
         ))}
@@ -169,14 +228,16 @@ function ImportSummaryCard({ analysis }: { analysis: ImportAnalysis }) {
 
 function ImportBreakdownCard({ analysis }: { analysis: ImportAnalysis }) {
   const items = [
-    { label: 'Pending', value: analysis.breakdown.pending },
-    { label: 'In Progress', value: analysis.breakdown.inProgress },
-    { label: 'Completed', value: analysis.breakdown.completed },
-    { label: 'Cancelled', value: analysis.breakdown.cancelled },
+    { label: "Pending", value: analysis.breakdown.pending },
+    { label: "In Progress", value: analysis.breakdown.inProgress },
+    { label: "Completed", value: analysis.breakdown.completed },
+    { label: "Cancelled", value: analysis.breakdown.cancelled },
   ];
   return (
     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">Todo Status Breakdown</h3>
+      <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-2">
+        Todo Status Breakdown
+      </h3>
       <div className="grid grid-cols-2 gap-2 text-xs">
         {items.map((item) => (
           <div key={item.label} className="flex justify-between">
@@ -195,7 +256,10 @@ function ImportWarnings({ warnings }: { warnings: string[] }) {
       <h3 className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-2">Warnings</h3>
       <ul className="space-y-1 text-xs text-yellow-800 dark:text-yellow-200">
         {warnings.map((w, i) => (
-          <li key={i} className="flex items-start gap-2"><span className="mt-0.5">&#9888;&#65039;</span><span>{w}</span></li>
+          <li key={i} className="flex items-start gap-2">
+            <span className="mt-0.5">&#9888;&#65039;</span>
+            <span>{w}</span>
+          </li>
         ))}
       </ul>
     </div>
@@ -203,11 +267,20 @@ function ImportWarnings({ warnings }: { warnings: string[] }) {
 }
 
 function ImportOptions({
-  importMode, setImportMode, includeCompleted, setIncludeCompleted, includeArchived, setIncludeArchived, completedCount,
+  importMode,
+  setImportMode,
+  includeCompleted,
+  setIncludeCompleted,
+  includeArchived,
+  setIncludeArchived,
+  completedCount,
 }: {
-  importMode: ImportMode; setImportMode: (m: ImportMode) => void;
-  includeCompleted: boolean; setIncludeCompleted: (v: boolean) => void;
-  includeArchived: boolean; setIncludeArchived: (v: boolean) => void;
+  importMode: ImportMode;
+  setImportMode: (m: ImportMode) => void;
+  includeCompleted: boolean;
+  setIncludeCompleted: (v: boolean) => void;
+  includeArchived: boolean;
+  setIncludeArchived: (v: boolean) => void;
   completedCount: number;
 }) {
   return (
@@ -216,10 +289,19 @@ function ImportOptions({
       <div className="space-y-2">
         <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Import Mode</label>
         <div className="flex gap-3">
-          {[{ value: 'merge' as ImportMode, label: 'Merge (add to existing data)' }, { value: 'replace' as ImportMode, label: 'Replace (delete all existing data)' }].map(({ value, label }) => (
+          {[
+            { value: "merge" as ImportMode, label: "Merge (add to existing data)" },
+            { value: "replace" as ImportMode, label: "Replace (delete all existing data)" },
+          ].map(({ value, label }) => (
             <label key={value} className="flex items-center gap-2 text-xs cursor-pointer">
-              <input type="radio" name="importMode" value={value} checked={importMode === value}
-                onChange={(e) => setImportMode(e.target.value as ImportMode)} className="text-blue-600" />
+              <input
+                type="radio"
+                name="importMode"
+                value={value}
+                checked={importMode === value}
+                onChange={(e) => setImportMode(e.target.value as ImportMode)}
+                className="text-blue-600"
+              />
               <span className="text-gray-700 dark:text-gray-300">{label}</span>
             </label>
           ))}
@@ -227,11 +309,23 @@ function ImportOptions({
       </div>
       <div className="space-y-2">
         <label className="flex items-center gap-2 text-xs cursor-pointer">
-          <input type="checkbox" checked={includeCompleted} onChange={(e) => setIncludeCompleted(e.target.checked)} className="rounded text-blue-600" />
-          <span className="text-gray-700 dark:text-gray-300">Include completed todos ({completedCount})</span>
+          <input
+            type="checkbox"
+            checked={includeCompleted}
+            onChange={(e) => setIncludeCompleted(e.target.checked)}
+            className="rounded text-blue-600"
+          />
+          <span className="text-gray-700 dark:text-gray-300">
+            Include completed todos ({completedCount})
+          </span>
         </label>
         <label className="flex items-center gap-2 text-xs cursor-pointer">
-          <input type="checkbox" checked={includeArchived} onChange={(e) => setIncludeArchived(e.target.checked)} className="rounded text-blue-600" />
+          <input
+            type="checkbox"
+            checked={includeArchived}
+            onChange={(e) => setIncludeArchived(e.target.checked)}
+            className="rounded text-blue-600"
+          />
           <span className="text-gray-700 dark:text-gray-300">Include archived lists</span>
         </label>
       </div>

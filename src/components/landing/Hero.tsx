@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useAuthModalStore } from '@/stores/auth-modal-store';
+import { useAuthModalStore } from "@/stores/auth-modal-store";
 
 export function Hero() {
   const { openSignup } = useAuthModalStore();
@@ -19,20 +19,26 @@ export function Hero() {
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900">
-            Your Tasks.{' '}
-            <span className="text-indigo-600">Organized.</span>{' '}
-            <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Free Forever.</span>
+            Your Tasks. <span className="text-indigo-600">Organized.</span>{" "}
+            <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              Free Forever.
+            </span>
           </h1>
           <p className="mt-5 sm:mt-6 text-base sm:text-lg text-gray-600 max-w-xl mx-auto">
-            The AI-powered todo app that&apos;s 100% free. No ads. No credit card. No catch. Just pure productivity.
+            The AI-powered todo app that&apos;s 100% free. No ads. No credit card. No catch. Just
+            pure productivity.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button onClick={openSignup}
-              className="w-full sm:w-auto rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 min-h-[44px]">
+            <button
+              onClick={openSignup}
+              className="w-full sm:w-auto rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 min-h-[44px]"
+            >
               Start for Free &rarr;
             </button>
-            <a href="#how-it-works"
-              className="w-full sm:w-auto rounded-xl border border-gray-300 px-6 py-3.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors text-center min-h-[44px]">
+            <a
+              href="#how-it-works"
+              className="w-full sm:w-auto rounded-xl border border-gray-300 px-6 py-3.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors text-center min-h-[44px]"
+            >
               See How It Works &darr;
             </a>
           </div>
@@ -45,23 +51,49 @@ export function Hero() {
               <span className="h-3 w-3 rounded-full bg-red-400" />
               <span className="h-3 w-3 rounded-full bg-yellow-400" />
               <span className="h-3 w-3 rounded-full bg-green-400" />
-              <span className="ml-2 text-xs text-gray-400">SupaTodo</span>
+              <span className="ml-2 text-xs text-gray-400">todoMasterAI</span>
             </div>
             {[
-              { text: 'Launch new website', done: true, priority: 'high' },
-              { text: 'Review design mockups', done: false, priority: 'medium' },
-              { text: 'Write API documentation', done: false, priority: 'low' },
+              { text: "Launch new website", done: true, priority: "high" },
+              { text: "Review design mockups", done: false, priority: "medium" },
+              { text: "Write API documentation", done: false, priority: "low" },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-3 py-2.5 px-1">
-                <span className={`flex-shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center ${item.done ? 'border-green-500 bg-green-500' : 'border-gray-300'}`}>
-                  {item.done && <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                <span
+                  className={`flex-shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center ${item.done ? "border-green-500 bg-green-500" : "border-gray-300"}`}
+                >
+                  {item.done && (
+                    <svg
+                      className="h-3 w-3 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={3}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
                 </span>
-                <span className={`text-sm flex-1 ${item.done ? 'line-through text-gray-400' : 'text-gray-900'}`}>{item.text}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                  item.priority === 'high' ? 'bg-red-50 text-red-600' :
-                  item.priority === 'medium' ? 'bg-yellow-50 text-yellow-600' :
-                  'bg-blue-50 text-blue-600'
-                }`}>{item.priority}</span>
+                <span
+                  className={`text-sm flex-1 ${item.done ? "line-through text-gray-400" : "text-gray-900"}`}
+                >
+                  {item.text}
+                </span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                    item.priority === "high"
+                      ? "bg-red-50 text-red-600"
+                      : item.priority === "medium"
+                        ? "bg-yellow-50 text-yellow-600"
+                        : "bg-blue-50 text-blue-600"
+                  }`}
+                >
+                  {item.priority}
+                </span>
               </div>
             ))}
           </div>

@@ -1,8 +1,9 @@
-# SupaTodo — System Architecture
+# todoMasterAI — System Architecture
 
 ## Overview
 
-SupaTodo is a production-grade multi-user Todo SaaS application built with:
+todoMasterAI is a production-grade multi-user Todo SaaS application built with:
+
 - **Frontend:** Next.js 15 (App Router) + TypeScript + Tailwind CSS
 - **Backend:** Supabase (PostgreSQL + Auth + Realtime + Edge Functions + Storage)
 - **State Management:** Zustand with offline persistence
@@ -33,7 +34,7 @@ User Action
 profiles (1) ──→ (M) lists (1) ──→ (M) todos (1) ──→ (M) subtasks
                                     │
                                     └──→ (M) todo_tags (M) ←── tags
-                                    
+
 profiles (1) ──→ (M) activity_logs
 ```
 

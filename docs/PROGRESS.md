@@ -1,6 +1,7 @@
-# SupaTodo — Build Progress
+# todoMasterAI — Build Progress
 
 ## Phase 0: Scaffolding
+
 - [x] Next.js project initialized
 - [x] All dependencies installed
 - [x] Folder structure created
@@ -8,6 +9,7 @@
 - [x] Learning doc templates created
 
 ## Phase 1: Database + RLS
+
 - [x] All 9 migration files created
 - [x] Learning docs: DATABASE_DESIGN.md written
 - [x] Learning docs: ROW_LEVEL_SECURITY.md written
@@ -16,6 +18,7 @@
 - [x] SUPABASE_SETUP_GUIDE.md written
 
 ## Phase 2: Authentication
+
 - [x] Supabase clients (browser + server) configured
 - [x] Middleware protecting routes
 - [x] Auth callback handler
@@ -24,6 +27,7 @@
 - [x] Learning docs: AUTHENTICATION.md written
 
 ## Phase 3: Core CRUD
+
 - [x] All services implemented
 - [x] All hooks implemented
 - [x] Sidebar + navigation
@@ -36,6 +40,7 @@
 - [x] Learning docs: SUPABASE_OVERVIEW.md written
 
 ## Phase 4: Realtime
+
 - [x] Realtime hook created
 - [x] Todos sync across tabs
 - [x] Lists sync across tabs
@@ -43,12 +48,14 @@
 - [x] Learning docs: REALTIME.md written
 
 ## Phase 5: Drag & Drop
+
 - [x] @dnd-kit integrated
 - [x] Todo reordering
 - [x] List reordering
 - [x] Position persistence in DB
 
 ## Phase 6: Offline Support
+
 - [x] Zustand persist middleware
 - [x] Offline queue
 - [x] Online/offline detection
@@ -56,6 +63,7 @@
 - [x] Optimistic updates everywhere
 
 ## Phase 7: Polish + Edge Functions
+
 - [x] Edge function: send-reminder
 - [x] Notifications table + UI
 - [x] Dashboard stats

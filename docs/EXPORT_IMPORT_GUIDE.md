@@ -162,7 +162,7 @@ Warnings:
 1. Navigate to **Settings** page
 2. Scroll to **Data Export & Import** section
 3. Click **Export All Data** button
-4. File downloads as `supatodo-export-YYYY-MM-DD.json`
+4. File downloads as `todoMasterAI-export-YYYY-MM-DD.json`
 
 **What Gets Exported:**
 
@@ -320,7 +320,7 @@ Potential additions:
 
 - Ensure file is valid JSON
 - Check file wasn't corrupted
-- Verify it's a Supatodo export file
+- Verify it's a todoMasterAI export file
 
 **Error: "Unsupported export version"**
 

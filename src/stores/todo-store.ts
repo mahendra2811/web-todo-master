@@ -1,12 +1,12 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { Todo } from '@/types/todo';
-import type { ListWithCounts } from '@/types/list';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import type { Todo } from "@/types/todo";
+import type { ListWithCounts } from "@/types/list";
 
 interface PendingAction {
   id: string;
-  type: 'create' | 'update' | 'delete';
-  table: 'todos' | 'lists' | 'subtasks';
+  type: "create" | "update" | "delete";
+  table: "todos" | "lists" | "subtasks";
   data: Record<string, unknown>;
   timestamp: number;
 }
@@ -37,8 +37,7 @@ export const useTodoStore = create<TodoState>()(
       isOnline: true,
       listsLoading: true,
       setLists: (lists) => set({ lists, listsLoading: false }),
-      addList: (list) =>
-        set((state) => ({ lists: [...state.lists, list] })),
+      addList: (list) => set((state) => ({ lists: [...state.lists, list] })),
       updateList: (id, updates) =>
         set((state) => ({
           lists: state.lists.map((l) => (l.id === id ? { ...l, ...updates } : l)),
@@ -63,7 +62,7 @@ export const useTodoStore = create<TodoState>()(
       setOnline: (isOnline) => set({ isOnline }),
     }),
     {
-      name: 'supatodo-store',
+      name: "todoMasterAI-store",
       partialize: (state) => ({
         lists: state.lists,
         todos: state.todos,
