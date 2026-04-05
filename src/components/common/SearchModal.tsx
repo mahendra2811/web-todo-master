@@ -157,7 +157,7 @@ export function SearchModal() {
       onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setOpen(false)} />
 
       {/* Modal */}
       <div className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl ring-1 ring-gray-200 overflow-hidden">

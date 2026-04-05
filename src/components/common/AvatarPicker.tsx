@@ -114,7 +114,7 @@ export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
   const selected = AVATARS.find((a) => a.id === value);
 
   return (
-    <div>
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -141,28 +141,31 @@ export function AvatarPicker({ value, onChange }: AvatarPickerProps) {
       </button>
 
       {open && (
-        <div className="mt-2 grid grid-cols-4 sm:grid-cols-5 gap-2 p-3 rounded-xl border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto">
-          {AVATARS.map((avatar) => (
-            <button
-              key={avatar.id}
-              type="button"
-              onClick={() => {
-                onChange(avatar.id);
-                setOpen(false);
-              }}
-              title={avatar.label}
-              className={cn(
-                "h-14 w-14 rounded-full overflow-hidden transition-all",
-                value === avatar.id
-                  ? "ring-2 ring-indigo-500 ring-offset-2"
-                  : "hover:ring-2 hover:ring-gray-300"
-              )}
-              style={{ backgroundColor: avatar.bg }}
-            >
-              <div className="h-full w-full" dangerouslySetInnerHTML={{ __html: avatar.svg }} />
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-2 z-20 grid grid-cols-4 sm:grid-cols-5 gap-2 p-3 rounded-xl border border-gray-200 bg-white shadow-lg max-h-60 overflow-y-auto w-[min(20rem,calc(100vw-2rem))]">
+            {AVATARS.map((avatar) => (
+              <button
+                key={avatar.id}
+                type="button"
+                onClick={() => {
+                  onChange(avatar.id);
+                  setOpen(false);
+                }}
+                title={avatar.label}
+                className={cn(
+                  "h-14 w-14 rounded-full overflow-hidden transition-all",
+                  value === avatar.id
+                    ? "ring-2 ring-indigo-500 ring-offset-2"
+                    : "hover:ring-2 hover:ring-gray-300"
+                )}
+                style={{ backgroundColor: avatar.bg }}
+              >
+                <div className="h-full w-full" dangerouslySetInnerHTML={{ __html: avatar.svg }} />
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

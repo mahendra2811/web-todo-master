@@ -1,34 +1,41 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Modal } from "@/components/ui/Modal";
-import { Button } from "@/components/ui/Button";
-import { EmojiPicker } from "@/components/common/EmojiPicker";
-import { createListSchema } from "@/lib/validators/list";
-import { DEFAULT_LIST_COLORS } from "@/lib/utils/constants";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
+import { EmojiPicker } from '@/components/common/EmojiPicker';
+import { updateListSchema } from '@/lib/validators/list';
+import { DEFAULT_LIST_COLORS } from '@/lib/utils/constants';
+import { toast } from 'sonner';
+import type { ListWithCounts } from '@/types/list';
 
-interface CreateListModalProps {
+interface EditListModalProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (input: {
-    name: string;
-    description?: string;
-    color?: string;
-    icon?: string;
-  }) => Promise<unknown>;
+  list: ListWithCounts;
+  onUpdate: (id: string, updates: { name?: string; description?: string; color?: string; icon?: string }) => Promise<unknown>;
 }
 
-export function CreateListModal({ open, onClose, onCreate }: CreateListModalProps) {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [color, setColor] = useState<string>(DEFAULT_LIST_COLORS[0]);
-  const [icon, setIcon] = useState("📋");
+export function EditListModal({ open, onClose, list, onUpdate }: EditListModalProps) {
+  const [name, setName] = useState(list.name);
+  const [description, setDescription] = useState(list.description || '');
+  const [color, setColor] = useState(list.color || DEFAULT_LIST_COLORS[0]);
+  const [icon, setIcon] = useState(list.icon || '📋');
   const [loading, setLoading] = useState(false);
+
+  // Sync state when list changes or modal opens
+  useEffect(() => {
+    if (open) {
+      setName(list.name);
+      setDescription(list.description || '');
+      setColor(list.color || DEFAULT_LIST_COLORS[0]);
+      setIcon(list.icon || '📋');
+    }
+  }, [open, list]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const result = createListSchema.safeParse({
+    const result = updateListSchema.safeParse({
       name,
       description: description || undefined,
       color,
@@ -39,11 +46,8 @@ export function CreateListModal({ open, onClose, onCreate }: CreateListModalProp
     }
     setLoading(true);
     try {
-      await onCreate({ ...result.data, icon });
-      setName("");
-      setDescription("");
-      setColor(DEFAULT_LIST_COLORS[0]);
-      setIcon("📋");
+      await onUpdate(list.id, { ...result.data, icon });
+      toast.success('List updated');
       onClose();
     } catch {
       // Error handled by hook
@@ -53,7 +57,7 @@ export function CreateListModal({ open, onClose, onCreate }: CreateListModalProp
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Create List">
+    <Modal open={open} onClose={onClose} title="Edit List">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex items-end gap-3">
           <div className="flex-shrink-0">
@@ -69,6 +73,7 @@ export function CreateListModal({ open, onClose, onCreate }: CreateListModalProp
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-base sm:text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none h-9"
               placeholder="My List"
               required
+              autoFocus
             />
           </div>
         </div>
@@ -91,7 +96,7 @@ export function CreateListModal({ open, onClose, onCreate }: CreateListModalProp
                 type="button"
                 onClick={() => setColor(c)}
                 className={`h-7 w-7 rounded-full border-2 transition-all ${
-                  color === c ? "border-gray-900 scale-110" : "border-transparent"
+                  color === c ? 'border-gray-900 scale-110' : 'border-transparent'
                 }`}
                 style={{ backgroundColor: c }}
               />
@@ -103,7 +108,7 @@ export function CreateListModal({ open, onClose, onCreate }: CreateListModalProp
             Cancel
           </Button>
           <Button type="submit" loading={loading}>
-            Create
+            Save Changes
           </Button>
         </div>
       </form>
