@@ -49,7 +49,7 @@ export function Sidebar() {
             className="text-lg font-bold text-indigo-500"
             onClick={handleNavClick}
           >
-            todoMasterAI
+            to-do Master
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

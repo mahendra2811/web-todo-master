@@ -17,7 +17,7 @@ export function Header() {
           />
         </svg>
       </button>
-      <span className="ml-4 text-lg font-bold text-indigo-500">todoMasterAI</span>
+      <span className="ml-4 text-lg font-bold text-indigo-500">to-do Master</span>
     </header>
   );
 }
