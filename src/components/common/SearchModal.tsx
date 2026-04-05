@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUIStore } from '@/stores/ui-store';
 import { useTodoStore } from '@/stores/todo-store';
@@ -16,24 +16,32 @@ export function SearchModal() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Flatten all todos
+  // Debounce search for performance
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(query), 150);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // Flatten all todos — build listName lookup Map for O(1) access
   const flatTodos = useMemo(() => {
+    const listNameMap = new Map(lists.map((l) => [l.id, l.name]));
     const result: (Todo & { listName: string })[] = [];
     for (const list of lists) {
       const todos = allTodos[list.id] || [];
       for (const todo of todos) {
-        result.push({ ...todo, listName: list.name });
+        result.push({ ...todo, listName: listNameMap.get(list.id) || '' });
       }
     }
     return result;
   }, [allTodos, lists]);
 
-  // Search results
+  // Search results — uses debounced query for performance
   const results = useMemo(() => {
-    if (!query.trim()) return [];
-    const q = query.toLowerCase();
+    if (!debouncedQuery.trim()) return [];
+    const q = debouncedQuery.toLowerCase();
 
     // Support operators: priority:high, status:completed, list:name
     let filtered = flatTodos;
@@ -68,15 +76,15 @@ export function SearchModal() {
     }
 
     return filtered.slice(0, 20);
-  }, [query, flatTodos]);
+  }, [debouncedQuery, flatTodos]);
 
   // Also search lists
   const listResults = useMemo(() => {
-    if (!query.trim()) return [];
-    const q = query.toLowerCase();
-    if (q.includes(':')) return []; // operator mode, skip list search
+    if (!debouncedQuery.trim()) return [];
+    const q = debouncedQuery.toLowerCase();
+    if (q.includes(':')) return [];
     return lists.filter((l) => l.name.toLowerCase().includes(q)).slice(0, 5);
-  }, [query, lists]);
+  }, [debouncedQuery, lists]);
 
   useEffect(() => {
     if (open) {
@@ -90,15 +98,15 @@ export function SearchModal() {
     setSelectedIndex(0);
   }, [query]);
 
-  function handleSelect(todo: Todo & { listName: string }) {
+  const handleSelect = useCallback((todo: Todo & { listName: string }) => {
     router.push(`/dashboard/lists/${todo.list_id}`);
     setOpen(false);
-  }
+  }, [router, setOpen]);
 
-  function handleSelectList(listId: string) {
+  const handleSelectList = useCallback((listId: string) => {
     router.push(`/dashboard/lists/${listId}`);
     setOpen(false);
-  }
+  }, [router, setOpen]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     const totalResults = listResults.length + results.length;

@@ -1,11 +1,9 @@
 import { createClient } from '@/lib/supabase/client';
 import type { TagInsert } from '@/types/todo';
 
-const getClient = () => createClient();
-
 export const tagService = {
   async getTags() {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('tags')
       .select('*')
       .order('name', { ascending: true });
@@ -14,7 +12,7 @@ export const tagService = {
   },
 
   async createTag(tag: Omit<TagInsert, 'user_id'>, userId: string) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('tags')
       .insert({ ...tag, user_id: userId })
       .select()
@@ -24,19 +22,19 @@ export const tagService = {
   },
 
   async deleteTag(id: string) {
-    const { error } = await getClient().from('tags').delete().eq('id', id);
+    const { error } = await createClient().from('tags').delete().eq('id', id);
     if (error) throw error;
   },
 
   async addTagToTodo(todoId: string, tagId: string) {
-    const { error } = await getClient()
+    const { error } = await createClient()
       .from('todo_tags')
       .insert({ todo_id: todoId, tag_id: tagId });
     if (error) throw error;
   },
 
   async removeTagFromTodo(todoId: string, tagId: string) {
-    const { error } = await getClient()
+    const { error } = await createClient()
       .from('todo_tags')
       .delete()
       .eq('todo_id', todoId)
@@ -44,19 +42,13 @@ export const tagService = {
     if (error) throw error;
   },
 
+  // Single query with join instead of 2 sequential queries
   async getTagsForTodo(todoId: string) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('todo_tags')
-      .select('tag_id')
+      .select('tags(*)')
       .eq('todo_id', todoId);
     if (error) throw error;
-    if (data.length === 0) return [];
-    const tagIds = data.map((row) => row.tag_id);
-    const { data: tags, error: tagError } = await getClient()
-      .from('tags')
-      .select('*')
-      .in('id', tagIds);
-    if (tagError) throw tagError;
-    return tags;
+    return data.map((row) => (row as Record<string, unknown>).tags).filter(Boolean);
   },
 };

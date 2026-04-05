@@ -1,11 +1,9 @@
 import { createClient } from '@/lib/supabase/client';
 import type { TodoInsert, TodoUpdate } from '@/types/todo';
 
-const getClient = () => createClient();
-
 export const todoService = {
   async getTodosByList(listId: string) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('todos')
       .select('*')
       .eq('list_id', listId)
@@ -16,7 +14,7 @@ export const todoService = {
   },
 
   async getTodo(id: string) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('todos')
       .select('*')
       .eq('id', id)
@@ -26,7 +24,7 @@ export const todoService = {
   },
 
   async createTodo(todo: Omit<TodoInsert, 'user_id'>, userId: string) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('todos')
       .insert({ ...todo, user_id: userId })
       .select()
@@ -36,7 +34,7 @@ export const todoService = {
   },
 
   async updateTodo(id: string, updates: TodoUpdate) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('todos')
       .update(updates)
       .eq('id', id)
@@ -47,7 +45,7 @@ export const todoService = {
   },
 
   async deleteTodo(id: string) {
-    const { error } = await getClient().from('todos').delete().eq('id', id);
+    const { error } = await createClient().from('todos').delete().eq('id', id);
     if (error) throw error;
   },
 
@@ -57,14 +55,11 @@ export const todoService = {
   },
 
   async reorderTodos(items: { id: string; position: number }[]) {
-    const client = getClient();
-    const batchSize = 10;
-    for (let i = 0; i < items.length; i += batchSize) {
-      const batch = items.slice(i, i + batchSize);
+    const client = createClient();
+    for (let i = 0; i < items.length; i += 10) {
+      const batch = items.slice(i, i + 10);
       const results = await Promise.all(
-        batch.map(({ id, position }) =>
-          client.from('todos').update({ position }).eq('id', id)
-        )
+        batch.map(({ id, position }) => client.from('todos').update({ position }).eq('id', id))
       );
       const failed = results.find((r) => r.error);
       if (failed?.error) throw failed.error;
@@ -72,7 +67,7 @@ export const todoService = {
   },
 
   async getUserStats(userId: string) {
-    const { data: todos, error } = await getClient()
+    const { data: todos, error } = await createClient()
       .from('todos')
       .select('status, completed_at, due_date')
       .eq('user_id', userId);
@@ -81,17 +76,18 @@ export const todoService = {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    return {
-      total: todos.length,
-      completed: todos.filter((t) => t.status === 'completed').length,
-      completedToday: todos.filter(
-        (t) => t.completed_at && new Date(t.completed_at) >= todayStart
-      ).length,
-      overdue: todos.filter(
-        (t) => t.due_date && new Date(t.due_date) < now && t.status !== 'completed' && t.status !== 'cancelled'
-      ).length,
-      pending: todos.filter((t) => t.status === 'pending').length,
-      inProgress: todos.filter((t) => t.status === 'in_progress').length,
-    };
+    // Single-pass aggregation instead of 6 separate .filter() calls
+    return todos.reduce(
+      (acc, t) => {
+        acc.total++;
+        if (t.status === 'completed') acc.completed++;
+        if (t.status === 'pending') acc.pending++;
+        if (t.status === 'in_progress') acc.inProgress++;
+        if (t.completed_at && new Date(t.completed_at) >= todayStart) acc.completedToday++;
+        if (t.due_date && new Date(t.due_date) < now && t.status !== 'completed' && t.status !== 'cancelled') acc.overdue++;
+        return acc;
+      },
+      { total: 0, completed: 0, completedToday: 0, overdue: 0, pending: 0, inProgress: 0 }
+    );
   },
 };

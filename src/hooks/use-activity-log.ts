@@ -17,11 +17,11 @@ export function useActivityLog() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const fetchActivity = useCallback(async (targetPage: number) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const result = await activityService.getPaginatedActivity(targetPage, PAGE_SIZE);
-      setActivities(result.data);
-      setTotal(result.total);
+      const { data, total } = await activityService.getPaginatedActivity(targetPage, PAGE_SIZE);
+      setActivities(data);
+      setTotal(total);
     } catch {
       // Activity log is non-critical, fail silently
     } finally {

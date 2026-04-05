@@ -1,11 +1,9 @@
 import { createClient } from '@/lib/supabase/client';
 import type { SubtaskInsert } from '@/types/todo';
 
-const getClient = () => createClient();
-
 export const subtaskService = {
   async getSubtasks(todoId: string) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('subtasks')
       .select('*')
       .eq('todo_id', todoId)
@@ -15,7 +13,7 @@ export const subtaskService = {
   },
 
   async createSubtask(subtask: Omit<SubtaskInsert, 'user_id'>, userId: string) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('subtasks')
       .insert({ ...subtask, user_id: userId })
       .select()
@@ -25,7 +23,7 @@ export const subtaskService = {
   },
 
   async toggleSubtask(id: string, isCompleted: boolean) {
-    const { data, error } = await getClient()
+    const { data, error } = await createClient()
       .from('subtasks')
       .update({ is_completed: !isCompleted })
       .eq('id', id)
@@ -36,7 +34,7 @@ export const subtaskService = {
   },
 
   async deleteSubtask(id: string) {
-    const { error } = await getClient().from('subtasks').delete().eq('id', id);
+    const { error } = await createClient().from('subtasks').delete().eq('id', id);
     if (error) throw error;
   },
 };
