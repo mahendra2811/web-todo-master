@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils/cn';
+import { cn } from "@/lib/utils/cn";
 
 interface PaginationProps {
   currentPage: number;
@@ -12,18 +12,12 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   if (totalPages <= 1) return null;
 
   // Build page numbers to show: always show first, last, current, and neighbors
-  const pages: (number | 'ellipsis')[] = [];
+  const pages: (number | "ellipsis")[] = [];
   for (let i = 1; i <= totalPages; i++) {
-    if (
-      i === 1 ||
-      i === totalPages ||
-      (i >= currentPage - 1 && i <= currentPage + 1)
-    ) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
       pages.push(i);
-    } else if (
-      pages[pages.length - 1] !== 'ellipsis'
-    ) {
-      pages.push('ellipsis');
+    } else if (pages[pages.length - 1] !== "ellipsis") {
+      pages.push("ellipsis");
     }
   }
 
@@ -40,17 +34,19 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
       </button>
 
       {pages.map((page, i) =>
-        page === 'ellipsis' ? (
-          <span key={`e-${i}`} className="px-1 text-gray-400 text-sm">…</span>
+        page === "ellipsis" ? (
+          <span key={`e-${i}`} className="px-1 text-gray-400 text-sm">
+            …
+          </span>
         ) : (
           <button
             key={page}
             onClick={() => onPageChange(page)}
             className={cn(
-              'rounded-lg text-sm font-medium transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center',
+              "rounded-lg text-sm font-medium transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center",
               currentPage === page
-                ? 'bg-indigo-500 text-white'
-                : 'text-gray-600 hover:bg-gray-100 active:bg-gray-200'
+                ? "bg-indigo-500 text-white"
+                : "text-gray-600 hover:bg-gray-100 active:bg-gray-200"
             )}
           >
             {page}

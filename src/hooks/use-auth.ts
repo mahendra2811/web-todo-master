@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { useAuthStore } from '@/stores/auth-store';
-import type { LoginInput, SignupInput } from '@/lib/validators/auth';
+import { useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useAuthStore } from "@/stores/auth-store";
+import type { LoginInput, SignupInput } from "@/lib/validators/auth";
 
 export function useAuth() {
   const router = useRouter();
@@ -18,7 +18,7 @@ export function useAuth() {
         password,
       });
       if (error) throw error;
-      router.push('/dashboard');
+      router.push("/dashboard");
       router.refresh();
     },
     [supabase, router]
@@ -34,14 +34,14 @@ export function useAuth() {
         },
       });
       if (error) throw error;
-      return { message: 'Check your email for a confirmation link.' };
+      return { message: "Check your email for a confirmation link." };
     },
     [supabase]
   );
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push("/");
     router.refresh();
   }, [supabase, router]);
 
