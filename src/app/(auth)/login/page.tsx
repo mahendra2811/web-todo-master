@@ -1,5 +1,17 @@
-import { LoginForm } from '@/components/auth/LoginForm';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthModalStore } from '@/stores/auth-modal-store';
 
 export default function LoginPage() {
-  return <LoginForm />;
+  const router = useRouter();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
+
+  useEffect(() => {
+    router.replace('/');
+    openLogin();
+  }, [router, openLogin]);
+
+  return null;
 }

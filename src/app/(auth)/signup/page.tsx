@@ -1,5 +1,17 @@
-import { SignupForm } from '@/components/auth/SignupForm';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthModalStore } from '@/stores/auth-modal-store';
 
 export default function SignupPage() {
-  return <SignupForm />;
+  const router = useRouter();
+  const openSignup = useAuthModalStore((s) => s.openSignup);
+
+  useEffect(() => {
+    router.replace('/');
+    openSignup();
+  }, [router, openSignup]);
+
+  return null;
 }
