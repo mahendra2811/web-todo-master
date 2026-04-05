@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import type { ListWithCounts } from '@/types/list';
+import Link from "next/link";
+import type { ListWithCounts } from "@/types/list";
 
 interface ListCardProps {
   list: ListWithCounts;
@@ -7,9 +7,7 @@ interface ListCardProps {
 
 export function ListCard({ list }: ListCardProps) {
   const completionPercent =
-    list.todo_count > 0
-      ? Math.round((list.completed_count / list.todo_count) * 100)
-      : 0;
+    list.todo_count > 0 ? Math.round((list.completed_count / list.todo_count) * 100) : 0;
 
   return (
     <Link
@@ -17,10 +15,16 @@ export function ListCard({ list }: ListCardProps) {
       className="block rounded-xl border border-gray-200 bg-white p-4 sm:p-5 hover:border-gray-300 hover:shadow-sm active:bg-gray-50 transition-all"
     >
       <div className="flex items-center gap-3 mb-3">
-        <span
-          className="h-4 w-4 rounded-full flex-shrink-0"
-          style={{ backgroundColor: list.color }}
-        />
+        <span className="mr-3 flex-shrink-0 text-base">
+          {list.icon && list.icon !== "list" ? (
+            list.icon
+          ) : (
+            <span
+              className="inline-block h-3 w-3 rounded-full"
+              style={{ backgroundColor: list.color }}
+            />
+          )}
+        </span>
         <h3 className="font-semibold text-gray-900 truncate">{list.name}</h3>
       </div>
       {list.description && (
