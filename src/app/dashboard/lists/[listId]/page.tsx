@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams, useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useTodos } from '@/hooks/use-todos';
 import { useLists } from '@/hooks/use-lists';
-import { useUIStore, type ViewMode } from '@/stores/ui-store';
+import type { ViewMode } from '@/stores/ui-store';
 import { TodoItem } from '@/components/todos/TodoItem';
 import { TodoForm } from '@/components/todos/TodoForm';
 import { TodoDetail } from '@/components/todos/TodoDetail';
@@ -24,8 +24,7 @@ export default function ListDetailPage() {
   const { todos, loading, createTodo, updateTodo, deleteTodo, toggleComplete } = useTodos(listId);
   const { lists, updateList } = useLists();
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
-  const viewMode = useUIStore((s) => s.viewMode);
-  const setViewMode = useUIStore((s) => s.setViewMode);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   const list = lists.find((l) => l.id === listId);
 
