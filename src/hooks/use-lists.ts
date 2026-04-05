@@ -19,15 +19,17 @@ export function useLists() {
   const setListsLoading = useTodoStore((s) => s.setListsLoading);
   const fetched = useRef(false);
 
+  const hasCache = lists.length > 0;
+
   const fetchLists = useCallback(async () => {
     try {
-      setListsLoading(true);
+      if (!hasCache) setListsLoading(true);
       const data = await listService.getListsWithCounts();
       setLists(data);
     } catch {
       toast.error('Failed to fetch lists');
     }
-  }, [setLists, setListsLoading]);
+  }, [setLists, setListsLoading, hasCache]);
 
   useEffect(() => {
     if (user && !fetched.current) {
@@ -88,5 +90,7 @@ export function useLists() {
     [lists, removeList, setLists]
   );
 
-  return { lists, loading, createList, updateList, deleteList, refetch: fetchLists };
+  const effectiveLoading = loading && !hasCache;
+
+  return { lists, loading: effectiveLoading, createList, updateList, deleteList, refetch: fetchLists };
 }

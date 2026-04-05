@@ -10,8 +10,12 @@ import type { CreateTodoInput, UpdateTodoInput } from '@/lib/validators/todo';
 import { POSITION_GAP } from '@/lib/utils/constants';
 
 export function useTodos(listId: string) {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [todos, setTodos] = useState<Todo[]>(
+    () => useTodoStore.getState().todos[listId] || []
+  );
+  const [loading, setLoading] = useState(
+    () => !(useTodoStore.getState().todos[listId]?.length)
+  );
   const [error, setError] = useState<string | null>(null);
   const user = useAuthStore((s) => s.user);
   const storeSetTodos = useTodoStore((s) => s.setTodos);
@@ -21,7 +25,7 @@ export function useTodos(listId: string) {
   const fetchTodos = useCallback(async () => {
     if (!listId) return;
     try {
-      setLoading(true);
+      if (!todosRef.current.length) setLoading(true);
       const data = await todoService.getTodosByList(listId);
       setTodos(data);
       storeSetTodos(listId, data);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useTodos } from '@/hooks/use-todos';
 import { useLists } from '@/hooks/use-lists';
 import { TodoItem } from '@/components/todos/TodoItem';
@@ -121,17 +121,20 @@ function FilterLink({
   value: string | null;
   current: string | null;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isActive = value === current || (value === 'position' && current === 'position' && param === 'sort');
 
   function handleClick() {
-    const url = new URL(window.location.href);
+    const params = new URLSearchParams(searchParams.toString());
     if (value === null || (param === 'sort' && value === 'position')) {
-      url.searchParams.delete(param);
+      params.delete(param);
     } else {
-      url.searchParams.set(param, value);
+      params.set(param, value);
     }
-    window.history.replaceState(null, '', url.toString());
-    window.location.reload();
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
   return (
