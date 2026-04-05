@@ -53,7 +53,7 @@ export function TodoForm({ listId, onSubmit, onCancel }: TodoFormProps) {
     return (
       <button
         onClick={() => setExpanded(true)}
-        className="w-full rounded-lg border-2 border-dashed border-gray-200 px-4 py-3 text-sm text-gray-400 hover:border-indigo-300 hover:text-indigo-500 transition-colors"
+        className="w-full rounded-lg border-2 border-dashed border-gray-200 px-4 py-3 text-sm text-gray-400 hover:border-indigo-300 hover:text-indigo-500 active:bg-gray-50 transition-colors min-h-[44px]"
       >
         + Add a todo
       </button>
@@ -61,27 +61,27 @@ export function TodoForm({ listId, onSubmit, onCancel }: TodoFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
+    <form onSubmit={handleSubmit} className="rounded-lg border border-gray-200 bg-white p-3 sm:p-4 space-y-3">
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="w-full text-sm font-medium text-gray-900 outline-none placeholder:text-gray-400"
+        className="w-full text-base sm:text-sm font-medium text-gray-900 outline-none placeholder:text-gray-400"
         placeholder="What needs to be done?"
         autoFocus
       />
       <textarea
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        className="w-full text-sm text-gray-600 outline-none placeholder:text-gray-400 resize-none"
+        className="w-full text-base sm:text-sm text-gray-600 outline-none placeholder:text-gray-400 resize-none"
         placeholder="Add a description..."
         rows={2}
       />
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value as TodoPriority)}
-          className="rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 outline-none"
+          className="rounded-md border border-gray-200 px-3 py-2 sm:px-2 sm:py-1 text-sm sm:text-xs text-gray-600 outline-none min-h-[44px] sm:min-h-0"
         >
           <option value="low">Low</option>
           <option value="medium">Medium</option>
@@ -92,7 +92,7 @@ export function TodoForm({ listId, onSubmit, onCancel }: TodoFormProps) {
           type="date"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
-          className="rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-600 outline-none"
+          className="rounded-md border border-gray-200 px-3 py-2 sm:px-2 sm:py-1 text-sm sm:text-xs text-gray-600 outline-none min-h-[44px] sm:min-h-0"
         />
       </div>
       <div className="flex justify-end gap-2 pt-1">

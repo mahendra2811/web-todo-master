@@ -1,24 +1,28 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/Button';
+import { ExportImport } from '@/components/common/ExportImport';
+import { AvatarPicker } from '@/components/common/AvatarPicker';
 import { createClient } from '@/lib/supabase/client';
+import { useUIStore, type Theme, type Density } from '@/stores/ui-store';
 import { profileSchema, passwordChangeSchema } from '@/lib/validators/auth';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
   const { user } = useAuth();
   const supabase = createClient();
+  const theme = useUIStore((s) => s.theme);
+  const setTheme = useUIStore((s) => s.setTheme);
+  const density = useUIStore((s) => s.density);
+  const setDensity = useUIStore((s) => s.setDensity);
 
   // Profile state
   const [fullName, setFullName] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarId, setAvatarId] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileFetching, setProfileFetching] = useState(true);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Password state
   const [newPassword, setNewPassword] = useState('');
@@ -36,40 +40,12 @@ export default function SettingsPage() {
         .single();
       if (data) {
         setFullName(data.full_name || '');
-        setAvatarUrl(data.avatar_url);
+        setAvatarId(data.avatar_url);
       }
       setProfileFetching(false);
     }
     loadProfile();
   }, [user, supabase]);
-
-  function getInitials() {
-    if (fullName.trim()) {
-      return fullName
-        .trim()
-        .split(' ')
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
-    }
-    return user?.email?.[0]?.toUpperCase() || '?';
-  }
-
-  function handleAvatarSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image must be under 2MB');
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file');
-      return;
-    }
-    setAvatarFile(file);
-    setAvatarPreview(URL.createObjectURL(file));
-  }
 
   async function handleUpdateProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -83,40 +59,16 @@ export default function SettingsPage() {
 
     setProfileLoading(true);
     try {
-      let newAvatarUrl = avatarUrl;
-
-      // Upload avatar if a new file was selected
-      if (avatarFile) {
-        const ext = avatarFile.name.split('.').pop();
-        const path = `${user.id}/${Date.now()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from('avatars')
-          .upload(path, avatarFile, { upsert: true });
-        if (uploadError) {
-          toast.error('Avatar upload failed: ' + uploadError.message);
-        } else {
-          const { data: urlData } = supabase.storage
-            .from('avatars')
-            .getPublicUrl(path);
-          newAvatarUrl = urlData.publicUrl;
-        }
-      }
-
-      // Update profiles table
       const { error } = await supabase
         .from('profiles')
-        .update({ full_name: fullName, avatar_url: newAvatarUrl })
+        .update({ full_name: fullName, avatar_url: avatarId })
         .eq('id', user.id);
       if (error) throw error;
 
-      // Sync auth metadata
       await supabase.auth.updateUser({
-        data: { full_name: fullName, avatar_url: newAvatarUrl },
+        data: { full_name: fullName, avatar_url: avatarId },
       });
 
-      setAvatarUrl(newAvatarUrl);
-      setAvatarFile(null);
-      setAvatarPreview(null);
       toast.success('Profile updated');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update profile');
@@ -127,13 +79,11 @@ export default function SettingsPage() {
 
   async function handleChangePassword(e: React.FormEvent) {
     e.preventDefault();
-
     const result = passwordChangeSchema.safeParse({ newPassword, confirmPassword });
     if (!result.success) {
       toast.error(result.error.issues[0].message);
       return;
     }
-
     setPasswordLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -148,112 +98,133 @@ export default function SettingsPage() {
     }
   }
 
-  const displayAvatar = avatarPreview || avatarUrl;
-
   return (
-    <div className="max-w-md space-y-6">
+    <div className="max-w-md space-y-4 sm:space-y-6">
       <h1 className="text-xl font-bold text-gray-900">Settings</h1>
 
       {/* Profile Section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Profile</h2>
-
-        {/* Avatar */}
-        <div className="flex items-center gap-4 mb-4">
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="relative h-16 w-16 rounded-full overflow-hidden bg-indigo-100 flex items-center justify-center hover:ring-2 hover:ring-indigo-300 transition-all"
-          >
-            {displayAvatar ? (
-              <img
-                src={displayAvatar}
-                alt="Avatar"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <span className="text-lg font-semibold text-indigo-600">
-                {getInitials()}
-              </span>
-            )}
-            <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
-              <span className="text-white text-xs opacity-0 hover:opacity-100">Edit</span>
-            </div>
-          </button>
-          <div>
+        <div className="flex items-start gap-4 mb-4">
+          <AvatarPicker value={avatarId} onChange={setAvatarId} />
+          <div className="pt-2">
             <p className="text-sm font-medium text-gray-900">
               {profileFetching ? 'Loading...' : fullName || 'No name set'}
             </p>
-            <p className="text-xs text-gray-500">Click avatar to change</p>
+            <p className="text-xs text-gray-500 mt-0.5">Pick an avatar</p>
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarSelect}
-            className="hidden"
-          />
         </div>
-
-        {/* Email */}
         <div className="mb-4">
           <p className="text-sm text-gray-500">Email</p>
           <p className="text-sm font-medium text-gray-900">{user?.email}</p>
         </div>
-
-        {/* Name Form */}
         <form onSubmit={handleUpdateProfile} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base sm:text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
               placeholder="Your name"
               disabled={profileFetching}
             />
           </div>
-          <Button type="submit" loading={profileLoading}>
-            Update Profile
-          </Button>
+          <Button type="submit" loading={profileLoading}>Update Profile</Button>
         </form>
       </div>
 
       {/* Password Section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-6">
+      <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
         <h2 className="text-sm font-semibold text-gray-900 mb-4">Change Password</h2>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base sm:text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
               placeholder="Min 6 characters"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base sm:text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none"
               placeholder="Re-enter password"
             />
           </div>
-          <Button type="submit" loading={passwordLoading} variant="secondary">
-            Change Password
-          </Button>
+          <Button type="submit" loading={passwordLoading} variant="secondary">Change Password</Button>
         </form>
+      </div>
+
+      {/* Appearance Section */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Appearance</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+            <div className="flex gap-2">
+              {(['light', 'dark', 'auto'] as Theme[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`px-3 py-1.5 text-sm rounded-lg border transition-colors capitalize ${
+                    theme === t
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {t === 'auto' ? '🖥️ Auto' : t === 'dark' ? '🌙 Dark' : '☀️ Light'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Layout Density</label>
+            <div className="flex gap-2">
+              {(['compact', 'comfortable', 'spacious'] as Density[]).map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDensity(d)}
+                  className={`px-3 py-1.5 text-sm rounded-lg border transition-colors capitalize ${
+                    density === d
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Export/Import Section */}
+      <ExportImport />
+
+      {/* Keyboard Shortcuts */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4 sm:p-6">
+        <h2 className="text-sm font-semibold text-gray-900 mb-3">Keyboard Shortcuts</h2>
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Search</span>
+            <kbd className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">⌘K</kbd>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Quick Add Todo</span>
+            <kbd className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">⌘N</kbd>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Close Modal</span>
+            <kbd className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded">Esc</kbd>
+          </div>
+        </div>
       </div>
     </div>
   );

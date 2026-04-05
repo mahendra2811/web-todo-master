@@ -4,11 +4,17 @@ import { useState } from 'react';
 import { useParams, useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useTodos } from '@/hooks/use-todos';
 import { useLists } from '@/hooks/use-lists';
+import { useUIStore, type ViewMode } from '@/stores/ui-store';
 import { TodoItem } from '@/components/todos/TodoItem';
 import { TodoForm } from '@/components/todos/TodoForm';
 import { TodoDetail } from '@/components/todos/TodoDetail';
+import { KanbanView } from '@/components/views/KanbanView';
+import { CalendarView } from '@/components/views/CalendarView';
 import { EmptyState } from '@/components/common/EmptyState';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils/cn';
+import { toast } from 'sonner';
 import type { Todo } from '@/types/todo';
 import type { TodoStatus, TodoPriority } from '@/lib/utils/constants';
 
@@ -16,8 +22,10 @@ export default function ListDetailPage() {
   const { listId } = useParams<{ listId: string }>();
   const searchParams = useSearchParams();
   const { todos, loading, createTodo, updateTodo, deleteTodo, toggleComplete } = useTodos(listId);
-  const { lists } = useLists();
+  const { lists, updateList } = useLists();
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
+  const viewMode = useUIStore((s) => s.viewMode);
+  const setViewMode = useUIStore((s) => s.setViewMode);
 
   const list = lists.find((l) => l.id === listId);
 
@@ -43,6 +51,21 @@ export default function ListDetailPage() {
     filteredTodos.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
+  async function handleStatusChange(id: string, status: TodoStatus) {
+    await updateTodo(id, { status });
+  }
+
+  async function handleDateDrop(todoId: string, date: string) {
+    await updateTodo(todoId, { due_date: date });
+    toast.success('Due date updated');
+  }
+
+  async function handleArchiveToggle() {
+    if (!list) return;
+    await updateList(listId, { is_archived: !list.is_archived });
+    toast.success(list.is_archived ? 'List unarchived' : 'List archived');
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -52,53 +75,113 @@ export default function ListDetailPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="mb-6">
-        <div className="flex items-center gap-3">
+    <div className={viewMode === 'list' ? 'max-w-2xl' : ''}>
+      {/* Header */}
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-0">
           {list && (
-            <span
-              className="h-4 w-4 rounded-full flex-shrink-0"
-              style={{ backgroundColor: list.color }}
-            />
+            <span className="text-xl">
+              {list.icon && list.icon !== 'list' ? list.icon : (
+                <span className="inline-block h-4 w-4 rounded-full" style={{ backgroundColor: list.color }} />
+              )}
+            </span>
           )}
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
             {list?.name || 'List'}
           </h1>
+          {list?.is_archived && (
+            <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded flex-shrink-0">Archived</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-2">
+          {/* View mode toggle */}
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
+            {(['list', 'kanban', 'calendar'] as ViewMode[]).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={cn(
+                  'px-2.5 py-1.5 sm:py-1 text-xs rounded-md transition-colors capitalize',
+                  viewMode === mode
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                )}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+          {/* Archive button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleArchiveToggle}
+            title={list?.is_archived ? 'Unarchive' : 'Archive'}
+            className="ml-auto"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+            </svg>
+          </Button>
         </div>
         {list?.description && (
           <p className="mt-1 text-sm text-gray-500">{list.description}</p>
         )}
       </div>
 
-      {/* Filter bar */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap text-xs">
-        <FilterLink label="All" param="status" value={null} current={statusFilter} />
-        <FilterLink label="Pending" param="status" value="pending" current={statusFilter} />
-        <FilterLink label="In Progress" param="status" value="in_progress" current={statusFilter} />
-        <FilterLink label="Completed" param="status" value="completed" current={statusFilter} />
-        <span className="text-gray-300">|</span>
-        <FilterLink label="Position" param="sort" value="position" current={sortBy} />
-        <FilterLink label="Due Date" param="sort" value="due_date" current={sortBy} />
-        <FilterLink label="Priority" param="sort" value="priority" current={sortBy} />
-      </div>
+      {/* Filter bar (only in list view) */}
+      {viewMode === 'list' && (
+        <div className="flex items-center gap-1.5 sm:gap-2 mb-4 flex-wrap">
+          <FilterLink label="All" param="status" value={null} current={statusFilter} />
+          <FilterLink label="Pending" param="status" value="pending" current={statusFilter} />
+          <FilterLink label="In Progress" param="status" value="in_progress" current={statusFilter} />
+          <FilterLink label="Completed" param="status" value="completed" current={statusFilter} />
+          <span className="text-gray-300">|</span>
+          <FilterLink label="Position" param="sort" value="position" current={sortBy} />
+          <FilterLink label="Due Date" param="sort" value="due_date" current={sortBy} />
+          <FilterLink label="Priority" param="sort" value="priority" current={sortBy} />
+        </div>
+      )}
 
-      <div className="space-y-2 mb-4">
-        {filteredTodos.length === 0 ? (
-          <EmptyState title="No todos" description="Add your first todo below." />
-        ) : (
-          filteredTodos.map((todo) => (
-            <TodoItem
-              key={todo.id}
-              todo={todo}
-              onToggle={toggleComplete}
-              onDelete={deleteTodo}
-              onSelect={setSelectedTodo}
-            />
-          ))
-        )}
-      </div>
+      {/* Views */}
+      {viewMode === 'list' && (
+        <>
+          <div className="space-y-2 mb-4">
+            {filteredTodos.length === 0 ? (
+              <EmptyState title="No todos" description="Add your first todo below." />
+            ) : (
+              filteredTodos.map((todo) => (
+                <TodoItem
+                  key={todo.id}
+                  todo={todo}
+                  onToggle={toggleComplete}
+                  onDelete={deleteTodo}
+                  onSelect={setSelectedTodo}
+                />
+              ))
+            )}
+          </div>
+          <TodoForm listId={listId} onSubmit={createTodo} />
+        </>
+      )}
 
-      <TodoForm listId={listId} onSubmit={createTodo} />
+      {viewMode === 'kanban' && (
+        <KanbanView
+          todos={filteredTodos}
+          onToggle={toggleComplete}
+          onDelete={deleteTodo}
+          onSelect={setSelectedTodo}
+          onStatusChange={handleStatusChange}
+        />
+      )}
+
+      {viewMode === 'calendar' && (
+        <CalendarView
+          todos={filteredTodos}
+          onSelect={setSelectedTodo}
+          onDateDrop={handleDateDrop}
+        />
+      )}
 
       <TodoDetail
         todo={selectedTodo}
@@ -140,7 +223,7 @@ function FilterLink({
   return (
     <button
       onClick={handleClick}
-      className={`rounded-full px-2.5 py-1 transition-colors ${
+      className={`rounded-full px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs transition-colors ${
         isActive
           ? 'bg-indigo-100 text-indigo-700 font-medium'
           : 'text-gray-500 hover:bg-gray-100'

@@ -40,7 +40,7 @@ export function TodoDetail({ todo, open, onClose, onUpdate }: TodoDetailProps) {
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Todo Details" className="max-w-lg">
+    <Modal open={open} onClose={onClose} title="Todo Details">
       <div className="space-y-4">
         {editing ? (
           <div className="space-y-2">
@@ -48,12 +48,12 @@ export function TodoDetail({ todo, open, onClose, onUpdate }: TodoDetailProps) {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:py-2 text-base sm:text-sm outline-none focus:border-indigo-500"
             />
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 sm:py-2 text-base sm:text-sm outline-none focus:border-indigo-500"
               rows={3}
             />
             <div className="flex gap-2">
@@ -78,11 +78,11 @@ export function TodoDetail({ todo, open, onClose, onUpdate }: TodoDetailProps) {
           <Badge className={status.color}>{status.label}</Badge>
         </div>
 
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
           <select
             value={todo.priority}
             onChange={(e) => onUpdate(todo.id, { priority: e.target.value as TodoPriority })}
-            className="rounded-md border border-gray-200 px-2 py-1 text-xs outline-none"
+            className="rounded-md border border-gray-200 px-3 py-2 sm:px-2 sm:py-1 text-sm sm:text-xs outline-none min-h-[44px] sm:min-h-0"
           >
             {Object.entries(TODO_PRIORITY).map(([key, val]) => (
               <option key={key} value={key}>{val.label}</option>
@@ -91,7 +91,7 @@ export function TodoDetail({ todo, open, onClose, onUpdate }: TodoDetailProps) {
           <select
             value={todo.status}
             onChange={(e) => onUpdate(todo.id, { status: e.target.value as TodoStatus })}
-            className="rounded-md border border-gray-200 px-2 py-1 text-xs outline-none"
+            className="rounded-md border border-gray-200 px-3 py-2 sm:px-2 sm:py-1 text-sm sm:text-xs outline-none min-h-[44px] sm:min-h-0"
           >
             {Object.entries(TODO_STATUS).map(([key, val]) => (
               <option key={key} value={key}>{val.label}</option>

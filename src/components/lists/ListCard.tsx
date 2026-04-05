@@ -14,7 +14,7 @@ export function ListCard({ list }: ListCardProps) {
   return (
     <Link
       href={`/dashboard/lists/${list.id}`}
-      className="block rounded-xl border border-gray-200 bg-white p-5 hover:border-gray-300 hover:shadow-sm transition-all"
+      className="block rounded-xl border border-gray-200 bg-white p-4 sm:p-5 hover:border-gray-300 hover:shadow-sm active:bg-gray-50 transition-all"
     >
       <div className="flex items-center gap-3 mb-3">
         <span

@@ -7,7 +7,9 @@ export const createListSchema = z.object({
   icon: z.string().max(50).optional(),
 });
 
-export const updateListSchema = createListSchema.partial();
+export const updateListSchema = createListSchema.partial().extend({
+  is_archived: z.boolean().optional(),
+});
 
 export type CreateListInput = z.infer<typeof createListSchema>;
 export type UpdateListInput = z.infer<typeof updateListSchema>;
